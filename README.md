@@ -1,15 +1,18 @@
-# What is this?
+# Moderator (hexagonal) — Kotlin + Spring Boot
 
-The github.dev web-based editor is a lightweight editing experience that runs entirely in your browser. You can navigate files and source code repositories from GitHub, and make and commit code changes.
+This is a starter project for a moderator service using a hexagonal (ports & adapters) architecture.
 
-There are two ways to go directly to a VS Code environment in your browser and start coding:
+Structure highlights
+- com.aitorr.moderator.domain — core domain models and business rules
+- com.aitorr.moderator.ports — inbound and outbound ports (interfaces)
+- com.aitorr.moderator.application — use case implementations
+- com.aitorr.moderator.adapters.in.web — RestController, DTOs
+- com.aitorr.moderator.adapters.out.persistence — JPA entities & repositories
 
-* Press the . key on any repository or pull request.
-* Swap `.com` with `.dev` in the URL. For example, this repo https://github.com/github/dev becomes http://github.dev/github/dev
+How to run
+1. Update `application.yml` with your DB settings (or run with an H2 profile).
+2. ./gradlew bootRun
 
-Preview the gif below to get a quick demo of github.dev in action.
-
-![github dev](https://user-images.githubusercontent.com/856858/130119109-4769f2d7-9027-4bc4-a38c-10f297499e8f.gif)
-
-# Why?
-It’s a quick way to edit and navigate code. It's especially useful if you want to edit multiple files at a time or take advantage of all the powerful code editing features of Visual Studio Code when making a quick change. For more information, see our [documentation](https://github.co/codespaces-editor-help).
+Notes
+- Change the group/package if you want another base package.
+- Add more adapters (e.g., messaging) as needed.

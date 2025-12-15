@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    # replace these with your DB credentials or configure profile-specific yml
+    url: jdbc:postgresql://localhost:5432/moderator
+    username: moderator
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 8080
