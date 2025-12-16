@@ -33,3 +33,5 @@ bin/
 
 # Spring Boot
 spring-boot-*.log
+application-local.yml
+application-local.properties

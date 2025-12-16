@@ -20,7 +20,13 @@ class TelegramBotClient(
      */
     fun getMe(): TelegramResponse<User> {
         val url = "$baseUrl/getMe"
-        val response = restTemplate.getForEntity<TelegramResponse<User>>(url)
-        return response.body ?: throw RuntimeException("Failed to get bot information")
+        try {
+            val response = restTemplate.getForEntity<TelegramResponse<User>>(url)
+            return response.body ?: throw RuntimeException(
+                "Failed to get bot information: Empty response body (HTTP ${response.statusCode})"
+            )
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to call Telegram API getMe: ${e.message}", e)
+        }
     }
 }

@@ -4,4 +4,5 @@ spring:
 
 telegram:
   bot:
-    token: "8441366454:AAEA1OaGxWaF4OPJf9Tr4pjoKgWV4pqmS-I"
+    # Use environment variable TELEGRAM_BOT_TOKEN or override in application-local.yml (not committed)
+    token: "${TELEGRAM_BOT_TOKEN:8441366454:AAEA1OaGxWaF4OPJf9Tr4pjoKgWV4pqmS-I}"
