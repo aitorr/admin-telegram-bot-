@@ -16,7 +16,6 @@ class TelegramBotClientTests {
 
     @Test
     fun `test telegram bot client bean is created`() {
-        // Verify that the client is properly instantiated
         assert(telegramBotClient != null) { "TelegramBotClient should be created" }
     }
 
@@ -24,16 +23,4 @@ class TelegramBotClientTests {
     fun `test properties are loaded correctly`() {
         assert(telegramBotProperties.token.isNotEmpty()) { "Token should be configured" }
     }
-
-    // Note: Integration tests that make real API calls should be run separately
-    // with @Tag("integration") and excluded from regular builds
-    // Example:
-    // @Test
-    // @Tag("integration")
-    // fun `test getMe returns bot information`() {
-    //     val response = telegramBotClient.getMe()
-    //     assert(response.ok) { "Response should be ok" }
-    //     assert(response.result != null) { "Result should not be null" }
-    //     assert(response.result!!.isBot) { "Result should be a bot" }
-    // }
 }

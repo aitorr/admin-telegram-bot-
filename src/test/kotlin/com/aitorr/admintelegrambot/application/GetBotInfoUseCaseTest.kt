@@ -19,7 +19,6 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `execute should return ChatBotUser when port returns success`() {
-        // Given
         val expectedUser = ChatBotUser(
             id = 123L,
             isBot = true,
@@ -30,10 +29,8 @@ class GetBotInfoUseCaseTest {
         )
         every { getChatBot.getChatBot() } returns expectedUser.right()
 
-        // When
         val result = useCase.execute()
 
-        // Then
         assertTrue(result.isRight())
         result.fold(
             ifLeft = { fail("Expected Right but got Left: $it") },
@@ -48,16 +45,13 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `execute should return ChatBotDoesNotExistError when port returns ChatBotNotFoundError`() {
-        // Given
         val portError = GetChatBotError.ChatBotNotFoundError(
             message = "Bot not found in API"
         )
         every { getChatBot.getChatBot() } returns portError.left()
 
-        // When
         val result = useCase.execute()
 
-        // Then
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
@@ -73,17 +67,14 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `execute should return UnexpectedUseCaseError when port returns TechnicalError`() {
-        // Given
         val portError = GetChatBotError.TechnicalError(
             message = "Network timeout",
             errorCode = 504
         )
         every { getChatBot.getChatBot() } returns portError.left()
 
-        // When
         val result = useCase.execute()
 
-        // Then
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
@@ -99,17 +90,14 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `execute should return UnexpectedUseCaseError when port returns UnexpectedError`() {
-        // Given
         val portError = GetChatBotError.UnexpectedError(
             message = "Unexpected exception occurred",
             cause = RuntimeException("Something went wrong")
         )
         every { getChatBot.getChatBot() } returns portError.left()
 
-        // When
         val result = useCase.execute()
 
-        // Then
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
@@ -125,17 +113,14 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `error trace should show chained errors`() {
-        // Given
         val portError = GetChatBotError.TechnicalError(
             message = "API connection failed",
             errorCode = 503
         )
         every { getChatBot.getChatBot() } returns portError.left()
 
-        // When
         val result = useCase.execute()
 
-        // Then
         result.fold(
             ifLeft = { error ->
                 val errorTrace = error.toErrorTrace()
