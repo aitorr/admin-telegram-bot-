@@ -2,10 +2,11 @@ package com.aitorr.admintelegrambot.application
 
 import arrow.core.left
 import arrow.core.right
-import com.aitorr.admintelegrambot.application.GetBotInfoUseCase.GetBotInfoUseCaseError
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCaseError.*
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import com.aitorr.admintelegrambot.domain.port.GetChatBot
-import com.aitorr.admintelegrambot.domain.port.GetChatBot.GetChatBotError
+import com.aitorr.admintelegrambot.domain.port.GetChatBotError
+import com.aitorr.admintelegrambot.domain.port.GetChatBotError.ChatBotNotFoundError
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -45,8 +46,8 @@ class GetBotInfoUseCaseTest {
 
     @Test
     fun `execute should return ChatBotDoesNotExistError when port returns ChatBotNotFoundError`() {
-        val portError = GetChatBotError.ChatBotNotFoundError(
-            message = "Bot not found in API"
+        val portError = ChatBotNotFoundError(
+                message = "Bot not found in API"
         )
         every { getChatBot.getChatBot() } returns portError.left()
 
@@ -55,7 +56,7 @@ class GetBotInfoUseCaseTest {
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
-                assertTrue(error is GetBotInfoUseCaseError.ChatBotDoesNotExistError)
+                assertTrue(error is ChatBotDoesNotExistError)
                 assertEquals("Chat bot does not exist", error.message)
                 assertNotNull(error.sourceError)
                 assertEquals("Bot not found in API", error.sourceError?.message)
@@ -78,7 +79,7 @@ class GetBotInfoUseCaseTest {
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
-                assertTrue(error is GetBotInfoUseCaseError.UnexpectedUseCaseError)
+                assertTrue(error is UnexpectedUseCaseError)
                 assertEquals("Unexpected error retrieving bot info", error.message)
                 assertNotNull(error.sourceError)
                 assertEquals("Network timeout", error.sourceError?.message)
@@ -101,7 +102,7 @@ class GetBotInfoUseCaseTest {
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
-                assertTrue(error is GetBotInfoUseCaseError.UnexpectedUseCaseError)
+                assertTrue(error is UnexpectedUseCaseError)
                 assertEquals("Unexpected error retrieving bot info", error.message)
                 assertNotNull(error.sourceError)
                 assertEquals("Unexpected exception occurred", error.sourceError?.message)

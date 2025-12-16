@@ -4,6 +4,8 @@ import arrow.core.Either
 import com.aitorr.admintelegrambot.domain.error.BaseError
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import com.aitorr.admintelegrambot.domain.port.GetChatBot
+import com.aitorr.admintelegrambot.domain.port.GetChatBotError
+import com.aitorr.admintelegrambot.domain.port.GetChatBotError.*
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,13 +15,13 @@ class GetBotInfoUseCase(
     fun execute(): Either<GetBotInfoUseCaseError, ChatBotUser> {
         return getChatBot.getChatBot().mapLeft { portError ->
             when (portError) {
-                is GetChatBot.GetChatBotError.ChatBotNotFoundError ->
+                is ChatBotNotFoundError ->
                     GetBotInfoUseCaseError.ChatBotDoesNotExistError(
                         message = "Chat bot does not exist",
                         sourceError = portError
                     )
-                is GetChatBot.GetChatBotError.TechnicalError,
-                is GetChatBot.GetChatBotError.UnexpectedError ->
+                is TechnicalError,
+                is UnexpectedError ->
                     GetBotInfoUseCaseError.UnexpectedUseCaseError(
                         message = "Unexpected error retrieving bot info",
                         sourceError = portError
@@ -27,16 +29,16 @@ class GetBotInfoUseCase(
             }
         }
     }
-    
-    sealed class GetBotInfoUseCaseError : BaseError {
-        data class ChatBotDoesNotExistError(
+}
+
+sealed class GetBotInfoUseCaseError : BaseError {
+    data class ChatBotDoesNotExistError(
             override val message: String,
             override val sourceError: BaseError? = null
-        ) : GetBotInfoUseCaseError()
-        
-        data class UnexpectedUseCaseError(
+    ) : GetBotInfoUseCaseError()
+
+    data class UnexpectedUseCaseError(
             override val message: String,
             override val sourceError: BaseError? = null
-        ) : GetBotInfoUseCaseError()
-    }
+    ) : GetBotInfoUseCaseError()
 }

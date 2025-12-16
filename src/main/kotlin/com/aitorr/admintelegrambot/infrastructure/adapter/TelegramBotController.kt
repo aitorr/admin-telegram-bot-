@@ -1,7 +1,9 @@
 package com.aitorr.admintelegrambot.infrastructure.adapter
 
 import com.aitorr.admintelegrambot.application.GetBotInfoUseCase
-import com.aitorr.admintelegrambot.application.GetBotInfoUseCase.GetBotInfoUseCaseError
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCaseError
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCaseError.ChatBotDoesNotExistError
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCaseError.UnexpectedUseCaseError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,7 +25,7 @@ class TelegramBotController(
 
     private fun handleError(error: GetBotInfoUseCaseError): ResponseEntity<ErrorResponse> {
         return when (error) {
-            is GetBotInfoUseCaseError.ChatBotDoesNotExistError -> 
+            is ChatBotDoesNotExistError ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ErrorResponse(
                         code = "CHAT_BOT_DOES_NOT_EXIST",
@@ -31,7 +33,7 @@ class TelegramBotController(
                         errorTrace = error.toErrorTrace()
                     ))
             
-            is GetBotInfoUseCaseError.UnexpectedUseCaseError -> 
+            is UnexpectedUseCaseError ->
                 ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ErrorResponse(
                         code = "UNEXPECTED_USE_CASE_ERROR",

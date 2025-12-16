@@ -5,7 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import com.aitorr.admintelegrambot.domain.port.GetChatBot
-import com.aitorr.admintelegrambot.domain.port.GetChatBot.GetChatBotError
+import com.aitorr.admintelegrambot.domain.port.GetChatBotError
 import com.aitorr.admintelegrambot.infrastructure.config.TelegramBotProperties
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
