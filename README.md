@@ -1,22 +1,22 @@
 # Admin Telegram Bot
 
-A Spring Boot application following hexagonal architecture pattern.
+A Spring Boot application written in Kotlin following hexagonal architecture pattern.
 
 ## Project Structure
 
 ```
 src/
 ├── main/
-│   ├── java/com/aitorr/admintelegrambot/
-│   │   ├── AdminTelegramBotApplication.java    # Main entry point
+│   ├── kotlin/com/aitorr/admintelegrambot/
+│   │   ├── AdminTelegramBotApplication.kt      # Main entry point
 │   │   ├── application/                         # Use cases and application services
 │   │   ├── domain/                              # Business logic and domain models
 │   │   └── infrastructure/                      # Adapters and external integrations
 │   └── resources/
 │       └── application.properties
 └── test/
-    └── java/com/aitorr/admintelegrambot/
-        └── AdminTelegramBotApplicationTests.java
+    └── kotlin/com/aitorr/admintelegrambot/
+        └── AdminTelegramBotApplicationTests.kt
 ```
 
 ## Building the Project
@@ -40,5 +40,6 @@ src/
 ## Technology Stack
 
 - Spring Boot 3.2.0
+- Kotlin 1.9.20
 - Java 17
 - Gradle 8.5
