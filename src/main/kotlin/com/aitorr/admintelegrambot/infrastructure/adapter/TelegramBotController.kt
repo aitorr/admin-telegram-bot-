@@ -1,8 +1,7 @@
 package com.aitorr.admintelegrambot.infrastructure.adapter
 
 import com.aitorr.admintelegrambot.application.GetBotInfoUseCase
-import com.aitorr.admintelegrambot.domain.model.ChatBotUser
-import com.aitorr.admintelegrambot.domain.port.GetChatBot.GetChatBotError
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCase.GetBotInfoUseCaseError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,29 +21,29 @@ class TelegramBotController(
         )
     }
 
-    private fun handleError(error: GetChatBotError): ResponseEntity<ErrorResponse> {
+    private fun handleError(error: GetBotInfoUseCaseError): ResponseEntity<ErrorResponse> {
         return when (error) {
-            is GetChatBotError.ChatBotNotFoundError -> 
+            is GetBotInfoUseCaseError.ChatBotDoesNotExistError -> 
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ErrorResponse("CHAT_BOT_NOT_FOUND", error.message))
-            
-            is GetChatBotError.TechnicalError -> 
-                ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .body(ErrorResponse(
-                        "TECHNICAL_ERROR", 
-                        error.message,
-                        error.errorCode
+                        code = "CHAT_BOT_DOES_NOT_EXIST",
+                        message = error.message,
+                        errorTrace = error.toErrorTrace()
                     ))
             
-            is GetChatBotError.UnexpectedError -> 
+            is GetBotInfoUseCaseError.UnexpectedUseCaseError -> 
                 ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ErrorResponse("UNEXPECTED_ERROR", error.message))
+                    .body(ErrorResponse(
+                        code = "UNEXPECTED_USE_CASE_ERROR",
+                        message = error.message,
+                        errorTrace = error.toErrorTrace()
+                    ))
         }
     }
 
     data class ErrorResponse(
         val code: String,
         val message: String,
-        val errorCode: Int? = null
+        val errorTrace: String? = null
     )
 }

@@ -1,6 +1,7 @@
 package com.aitorr.admintelegrambot.domain.port
 
 import arrow.core.Either
+import com.aitorr.admintelegrambot.domain.error.BaseError
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 
 /**
@@ -16,22 +17,34 @@ interface GetChatBot {
     fun getChatBot(): Either<GetChatBotError, ChatBotUser>
     
     /**
-     * Sealed class hierarchy for GetChatBot errors
+     * Sealed class hierarchy for GetChatBot port errors
+     * These are infrastructure-level errors
      */
-    sealed class GetChatBotError {
+    sealed class GetChatBotError : BaseError {
         /**
          * Unexpected error that couldn't be categorized
          */
-        data class UnexpectedError(val message: String, val cause: Throwable? = null) : GetChatBotError()
+        data class UnexpectedError(
+            override val message: String,
+            val cause: Throwable? = null,
+            override val sourceError: BaseError? = null
+        ) : GetChatBotError()
         
         /**
          * Technical error from infrastructure layer (network, API, etc.)
          */
-        data class TechnicalError(val message: String, val errorCode: Int? = null) : GetChatBotError()
+        data class TechnicalError(
+            override val message: String,
+            val errorCode: Int? = null,
+            override val sourceError: BaseError? = null
+        ) : GetChatBotError()
         
         /**
          * Chat bot not found
          */
-        data class ChatBotNotFoundError(val message: String) : GetChatBotError()
+        data class ChatBotNotFoundError(
+            override val message: String,
+            override val sourceError: BaseError? = null
+        ) : GetChatBotError()
     }
 }
