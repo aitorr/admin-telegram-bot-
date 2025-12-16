@@ -25,7 +25,8 @@ class GetBotInfoUseCase(
                 languageCode = user.languageCode
             )
         } else {
-            throw RuntimeException("Failed to get bot info: ${response.description}")
+            val errorCode = if (response.errorCode != null) " (error code: ${response.errorCode})" else ""
+            throw RuntimeException("Failed to get bot info: ${response.description}$errorCode")
         }
     }
 }
