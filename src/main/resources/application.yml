@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: admin-telegram-bot
+
+telegram:
+  bot:
+    token: "8441366454:AAEA1OaGxWaF4OPJf9Tr4pjoKgWV4pqmS-I"
