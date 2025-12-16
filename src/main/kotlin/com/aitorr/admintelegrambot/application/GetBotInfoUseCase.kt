@@ -1,7 +1,6 @@
 package com.aitorr.admintelegrambot.application
 
 import arrow.core.Either
-import arrow.core.left
 import com.aitorr.admintelegrambot.domain.error.BaseError
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import com.aitorr.admintelegrambot.domain.port.GetChatBot
