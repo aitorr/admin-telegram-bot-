@@ -97,12 +97,12 @@ class TelegramBotClient(
 
     /**
      * Internal method for calling Telegram getMe API
+     * Throws exception if response body is null - will be caught by getChatBot()
      */
     private fun getMe(): TelegramResponse<User> {
         val url = "$baseUrl/getMe"
         val response = restTemplate.getForEntity<TelegramResponse<User>>(url)
-        return response.body ?: throw RuntimeException(
-            "Failed to get bot information: Empty response body (HTTP ${response.statusCode})"
-        )
+        return response.body
+            ?: throw IllegalStateException("Empty response body (HTTP ${response.statusCode})")
     }
 }
