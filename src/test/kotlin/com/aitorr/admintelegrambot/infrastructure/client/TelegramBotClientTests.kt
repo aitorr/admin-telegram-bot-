@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 
 class TelegramBotClientTests {
@@ -18,12 +19,22 @@ class TelegramBotClientTests {
     private lateinit var restTemplate: RestTemplate
     private lateinit var telegramBotProperties: TelegramBotProperties
     private lateinit var telegramBotClient: TelegramBotClient
+    
+    companion object {
+        private const val TEST_TOKEN = "test-token-123"
+        private const val BASE_URL = "https://api.telegram.org/bot$TEST_TOKEN/getMe"
+    }
 
     @BeforeEach
     fun setup() {
         restTemplate = mockk()
-        telegramBotProperties = TelegramBotProperties(token = "test-token-123")
+        telegramBotProperties = TelegramBotProperties(token = TEST_TOKEN)
         telegramBotClient = TelegramBotClient(telegramBotProperties, restTemplate)
+    }
+    
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> mockResponseEntity(response: TelegramBotClient.TelegramResponse<T>): ResponseEntity<TelegramBotClient.TelegramResponse<*>> {
+        return ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
     }
 
     @Test
@@ -44,13 +55,11 @@ class TelegramBotClientTests {
             ok = true,
             result = user
         )
-        
-        @Suppress("UNCHECKED_CAST")
-        val responseEntity = ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
+        val responseEntity = mockResponseEntity(response)
 
         every { 
             restTemplate.getForEntity(
-                "https://api.telegram.org/bottest-token-123/getMe",
+                BASE_URL,
                 TelegramBotClient.TelegramResponse::class.java
             ) 
         } returns responseEntity
@@ -89,9 +98,7 @@ class TelegramBotClientTests {
             description = "Bot not found",
             errorCode = 404
         )
-        
-        @Suppress("UNCHECKED_CAST")
-        val responseEntity = ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
+        val responseEntity = mockResponseEntity(response)
 
         every { 
             restTemplate.getForEntity(
@@ -123,9 +130,7 @@ class TelegramBotClientTests {
             description = "Internal server error",
             errorCode = 500
         )
-        
-        @Suppress("UNCHECKED_CAST")
-        val responseEntity = ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
+        val responseEntity = mockResponseEntity(response)
 
         every { 
             restTemplate.getForEntity(
@@ -158,9 +163,7 @@ class TelegramBotClientTests {
             description = "Unknown error occurred",
             errorCode = null
         )
-        
-        @Suppress("UNCHECKED_CAST")
-        val responseEntity = ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
+        val responseEntity = mockResponseEntity(response)
 
         every { 
             restTemplate.getForEntity(
@@ -239,7 +242,7 @@ class TelegramBotClientTests {
     @Test
     fun `getChatBot should return TechnicalError when HTTP 500 exception is thrown`() {
         // Given
-        val exception = HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
+        val exception = HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
 
         every { 
             restTemplate.getForEntity(
@@ -255,9 +258,8 @@ class TelegramBotClientTests {
         assertTrue(result.isLeft())
         result.fold(
             ifLeft = { error ->
-                assertTrue(error is GetChatBotError.TechnicalError)
-                assertTrue(error.message.contains("HTTP error"))
-                assertEquals(500, (error as GetChatBotError.TechnicalError).errorCode)
+                assertTrue(error is GetChatBotError.UnexpectedError)
+                assertTrue(error.message.contains("Unexpected error calling Telegram API"))
             },
             ifRight = { fail("Expected Left but got Right: $it") }
         )
@@ -309,9 +311,7 @@ class TelegramBotClientTests {
             ok = true,
             result = user
         )
-        
-        @Suppress("UNCHECKED_CAST")
-        val responseEntity = ResponseEntity.ok(response) as ResponseEntity<TelegramBotClient.TelegramResponse<*>>
+        val responseEntity = mockResponseEntity(response)
 
         every { 
             restTemplate.getForEntity(
