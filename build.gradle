@@ -8,8 +8,13 @@ plugins {
 group = 'com.aitorr'
 version = '0.0.1-SNAPSHOT'
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 kotlin {
-    jvmToolchain(17)
     compilerOptions {
         freeCompilerArgs.add('-Xjsr305=strict')
     }
