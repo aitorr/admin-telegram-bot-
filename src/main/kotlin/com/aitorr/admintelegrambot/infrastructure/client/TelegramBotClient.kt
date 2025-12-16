@@ -20,9 +20,6 @@ class TelegramBotClient(
 ) : GetChatBot {
     private val baseUrl = "https://api.telegram.org/bot${telegramBotProperties.token}"
 
-    /**
-     * Telegram API response wrapper
-     */
     data class TelegramResponse<T>(
         val ok: Boolean,
         val result: T? = null,
@@ -30,9 +27,6 @@ class TelegramBotClient(
         val errorCode: Int? = null
     )
 
-    /**
-     * Telegram User representation (infrastructure model)
-     */
     data class User(
         val id: Long,
         val isBot: Boolean,
@@ -45,10 +39,6 @@ class TelegramBotClient(
         val supportsInlineQueries: Boolean? = null
     )
 
-    /**
-     * Implementation of GetChatBot port
-     * Returns Either with error on the left or ChatBotUser on the right
-     */
     override fun getChatBot(): Either<GetChatBotError, ChatBotUser> {
         return try {
             val response = getMe()
@@ -95,10 +85,6 @@ class TelegramBotClient(
         }
     }
 
-    /**
-     * Internal method for calling Telegram getMe API
-     * Throws exception if response body is null - will be caught by getChatBot()
-     */
     private fun getMe(): TelegramResponse<User> {
         val url = "$baseUrl/getMe"
         val response = restTemplate.getForEntity<TelegramResponse<User>>(url)
