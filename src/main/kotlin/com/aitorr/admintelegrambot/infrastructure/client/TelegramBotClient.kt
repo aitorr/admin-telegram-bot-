@@ -1,7 +1,5 @@
 package com.aitorr.admintelegrambot.infrastructure.client
 
-import com.aitorr.admintelegrambot.domain.model.TelegramResponse
-import com.aitorr.admintelegrambot.domain.model.User
 import com.aitorr.admintelegrambot.infrastructure.config.TelegramBotProperties
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -13,6 +11,31 @@ class TelegramBotClient(
     private val restTemplate: RestTemplate = RestTemplate()
 ) {
     private val baseUrl = "https://api.telegram.org/bot${telegramBotProperties.token}"
+
+    /**
+     * Telegram API response wrapper
+     */
+    data class TelegramResponse<T>(
+        val ok: Boolean,
+        val result: T? = null,
+        val description: String? = null,
+        val errorCode: Int? = null
+    )
+
+    /**
+     * Telegram User representation (infrastructure model)
+     */
+    data class User(
+        val id: Long,
+        val isBot: Boolean,
+        val firstName: String,
+        val lastName: String? = null,
+        val username: String? = null,
+        val languageCode: String? = null,
+        val canJoinGroups: Boolean? = null,
+        val canReadAllGroupMessages: Boolean? = null,
+        val supportsInlineQueries: Boolean? = null
+    )
 
     /**
      * A simple method for testing your bot's authentication token.

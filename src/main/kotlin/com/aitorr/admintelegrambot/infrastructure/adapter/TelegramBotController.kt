@@ -1,7 +1,7 @@
 package com.aitorr.admintelegrambot.infrastructure.adapter
 
-import com.aitorr.admintelegrambot.application.TelegramBotService
-import com.aitorr.admintelegrambot.domain.model.User
+import com.aitorr.admintelegrambot.application.GetBotInfoUseCase
+import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/telegram")
 class TelegramBotController(
-    private val telegramBotService: TelegramBotService
+    private val getBotInfoUseCase: GetBotInfoUseCase
 ) {
     @GetMapping("/bot-info")
-    fun getBotInfo(): User {
-        return telegramBotService.getBotInfo()
+    fun getBotInfo(): ChatBotUser {
+        return getBotInfoUseCase.execute()
     }
 }
