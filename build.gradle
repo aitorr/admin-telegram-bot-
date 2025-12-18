@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.spring' version '1.9.21'
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'nu.studer.jooq' version '8.2'
 }
 
 group = 'com.aitorr'
@@ -27,7 +28,7 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
@@ -35,8 +36,17 @@ dependencies {
     // Arrow for functional programming
     implementation 'io.arrow-kt:arrow-core:1.2.1'
     
+    // Flyway for database migrations
+    implementation 'org.flywaydb:flyway-core:9.22.3'
+    
     // PostgreSQL
-    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
+    
+    // jOOQ code generation
+    implementation 'org.jooq:jooq-codegen:3.18.7'
+    
+    // Testcontainers for code generation (needed by JooqCodeGen)
+    implementation 'org.testcontainers:postgresql:1.19.3'
     
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.mockk:mockk:1.13.8'
@@ -49,4 +59,20 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Custom task to generate jOOQ code using our JooqCodeGen class
+task generateJooq(type: JavaExec) {
+    group = 'jooq'
+    description = 'Generates jOOQ code from Flyway migrations using Testcontainers'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.aitorr.admintelegrambot.codegen.JooqCodeGen'
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// Make compileKotlin depend on processResources to ensure migrations are available
+tasks.named('compileKotlin') {
+    dependsOn tasks.named('processResources')
 }

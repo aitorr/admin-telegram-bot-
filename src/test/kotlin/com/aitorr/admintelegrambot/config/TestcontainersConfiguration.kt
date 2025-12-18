@@ -11,7 +11,9 @@ import org.testcontainers.utility.DockerImageName
 class TestcontainersConfiguration {
 
     companion object {
-        private val postgresContainer = PostgreSQLContainer(DockerImageName.parse("postgres:15-alpine"))
+        private const val POSTGRES_VERSION = "postgres:15-alpine"
+        
+        private val postgresContainer = PostgreSQLContainer(DockerImageName.parse(POSTGRES_VERSION))
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")

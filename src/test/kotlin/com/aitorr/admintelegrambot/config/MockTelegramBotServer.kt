@@ -1,11 +1,9 @@
 package com.aitorr.admintelegrambot.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -16,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap
 class MockTelegramBotServer {
     
     private val botUsers = ConcurrentHashMap<Long, MockBotUser>()
-    private val objectMapper = ObjectMapper()
     
     data class MockBotUser(
         val id: Long,

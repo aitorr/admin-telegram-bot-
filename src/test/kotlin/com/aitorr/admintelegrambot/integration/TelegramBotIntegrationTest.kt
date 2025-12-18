@@ -3,8 +3,7 @@ package com.aitorr.admintelegrambot.integration
 import com.aitorr.admintelegrambot.config.MockTelegramBotServer
 import com.aitorr.admintelegrambot.config.TestcontainersConfiguration
 import com.aitorr.admintelegrambot.domain.model.ChatBotUser
-import com.aitorr.admintelegrambot.infrastructure.persistence.ChatBotUserEntity
-import com.aitorr.admintelegrambot.infrastructure.persistence.ChatBotUserRepository
+import com.aitorr.admintelegrambot.infrastructure.adapter.outbound.ChatBotUserRepositoryJooq
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -30,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 class TelegramBotIntegrationTest {
 
     @Autowired
-    private lateinit var chatBotUserRepository: ChatBotUserRepository
+    private lateinit var chatBotUserRepository: ChatBotUserRepositoryJooq
 
     @Autowired
     private lateinit var mockTelegramBotServer: MockTelegramBotServer
@@ -52,7 +51,7 @@ class TelegramBotIntegrationTest {
     @Test
     fun `should save and retrieve bot user from PostgreSQL database`() {
         // Given
-        val botUser = ChatBotUserEntity(
+        val botUser = ChatBotUser(
             id = 123456789L,
             isBot = true,
             firstName = "TestBot",
@@ -66,23 +65,23 @@ class TelegramBotIntegrationTest {
         val retrievedBot = chatBotUserRepository.findById(savedBot.id)
 
         // Then
-        assertTrue(retrievedBot.isPresent)
-        assertEquals(botUser.id, retrievedBot.get().id)
-        assertEquals(botUser.firstName, retrievedBot.get().firstName)
-        assertEquals(botUser.username, retrievedBot.get().username)
-        assertEquals(botUser.languageCode, retrievedBot.get().languageCode)
+        assertNotNull(retrievedBot)
+        assertEquals(botUser.id, retrievedBot?.id)
+        assertEquals(botUser.firstName, retrievedBot?.firstName)
+        assertEquals(botUser.username, retrievedBot?.username)
+        assertEquals(botUser.languageCode, retrievedBot?.languageCode)
     }
 
     @Test
     fun `should persist multiple bot users in PostgreSQL`() {
         // Given
-        val bot1 = ChatBotUserEntity(
+        val bot1 = ChatBotUser(
             id = 111111111L,
             isBot = true,
             firstName = "Bot1",
             username = "bot_one"
         )
-        val bot2 = ChatBotUserEntity(
+        val bot2 = ChatBotUser(
             id = 222222222L,
             isBot = true,
             firstName = "Bot2",
@@ -90,7 +89,8 @@ class TelegramBotIntegrationTest {
         )
 
         // When
-        chatBotUserRepository.saveAll(listOf(bot1, bot2))
+        chatBotUserRepository.save(bot1)
+        chatBotUserRepository.save(bot2)
         val allBots = chatBotUserRepository.findAll()
 
         // Then
@@ -102,7 +102,7 @@ class TelegramBotIntegrationTest {
     @Test
     fun `should update existing bot user in database`() {
         // Given
-        val originalBot = ChatBotUserEntity(
+        val originalBot = ChatBotUser(
             id = 333333333L,
             isBot = true,
             firstName = "OriginalName",
@@ -110,21 +110,21 @@ class TelegramBotIntegrationTest {
         )
         chatBotUserRepository.save(originalBot)
 
-        // When
-        originalBot.firstName = "UpdatedName"
-        chatBotUserRepository.save(originalBot)
+        // When - Update the entity
+        val updatedBot = originalBot.copy(firstName = "UpdatedName")
+        chatBotUserRepository.update(updatedBot)
         val retrieved = chatBotUserRepository.findById(originalBot.id)
 
         // Then
-        assertTrue(retrieved.isPresent)
-        assertEquals("UpdatedName", retrieved.get().firstName)
-        assertEquals("original_bot", retrieved.get().username)
+        assertNotNull(retrieved)
+        assertEquals("UpdatedName", retrieved?.firstName)
+        assertEquals("original_bot", retrieved?.username)
     }
 
     @Test
     fun `should delete bot user from database`() {
         // Given
-        val botUser = ChatBotUserEntity(
+        val botUser = ChatBotUser(
             id = 444444444L,
             isBot = true,
             firstName = "ToBeDeleted",
@@ -137,7 +137,7 @@ class TelegramBotIntegrationTest {
         val retrieved = chatBotUserRepository.findById(botUser.id)
 
         // Then
-        assertFalse(retrieved.isPresent)
+        assertNull(retrieved)
     }
 
     @Test
@@ -215,7 +215,7 @@ class TelegramBotIntegrationTest {
     }
 
     @Test
-    fun `should convert between domain model and entity`() {
+    fun `should support upsert operations`() {
         // Given
         val domainModel = ChatBotUser(
             id = 777777777L,
@@ -226,23 +226,23 @@ class TelegramBotIntegrationTest {
             languageCode = "fr"
         )
 
-        // When - Convert to entity
-        val entity = ChatBotUserEntity.fromDomain(domainModel)
+        // When - Save first time
+        chatBotUserRepository.save(domainModel)
+        val firstSave = chatBotUserRepository.findById(domainModel.id)
         
-        // Then - Verify entity
-        assertEquals(domainModel.id, entity.id)
-        assertEquals(domainModel.firstName, entity.firstName)
-        assertEquals(domainModel.username, entity.username)
+        // Then - Should exist
+        assertNotNull(firstSave)
+        assertEquals("DomainBot", firstSave?.firstName)
 
-        // When - Convert back to domain
-        val convertedDomain = entity.toDomain()
+        // When - Save again with updated data (upsert)
+        val updated = domainModel.copy(firstName = "UpdatedDomainBot")
+        chatBotUserRepository.save(updated)
+        val secondSave = chatBotUserRepository.findById(domainModel.id)
 
-        // Then - Verify round-trip conversion
-        assertEquals(domainModel.id, convertedDomain.id)
-        assertEquals(domainModel.firstName, convertedDomain.firstName)
-        assertEquals(domainModel.lastName, convertedDomain.lastName)
-        assertEquals(domainModel.username, convertedDomain.username)
-        assertEquals(domainModel.languageCode, convertedDomain.languageCode)
+        // Then - Should be updated, not duplicated
+        assertNotNull(secondSave)
+        assertEquals("UpdatedDomainBot", secondSave?.firstName)
+        assertEquals(1, chatBotUserRepository.count())
     }
 
     @Test
@@ -266,7 +266,7 @@ class TelegramBotIntegrationTest {
         val resultBot = apiResponse.result!!
 
         // When - Save to database
-        val entity = ChatBotUserEntity(
+        val domainBot = ChatBotUser(
             id = resultBot.id,
             isBot = resultBot.isBot,
             firstName = resultBot.firstName,
@@ -274,13 +274,13 @@ class TelegramBotIntegrationTest {
             username = resultBot.username,
             languageCode = resultBot.languageCode
         )
-        chatBotUserRepository.save(entity)
+        chatBotUserRepository.save(domainBot)
 
         // Then - Verify persistence
         val persistedBot = chatBotUserRepository.findById(botId)
-        assertTrue(persistedBot.isPresent)
-        assertEquals(mockBot.firstName, persistedBot.get().firstName)
-        assertEquals(mockBot.username, persistedBot.get().username)
-        assertEquals(mockBot.languageCode, persistedBot.get().languageCode)
+        assertNotNull(persistedBot)
+        assertEquals(mockBot.firstName, persistedBot?.firstName)
+        assertEquals(mockBot.username, persistedBot?.username)
+        assertEquals(mockBot.languageCode, persistedBot?.languageCode)
     }
 }
