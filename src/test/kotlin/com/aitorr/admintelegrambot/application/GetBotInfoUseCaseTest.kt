@@ -7,6 +7,7 @@ import com.aitorr.admintelegrambot.domain.model.ChatBotUser
 import com.aitorr.admintelegrambot.domain.port.GetChatBot
 import com.aitorr.admintelegrambot.domain.port.GetChatBotError
 import com.aitorr.admintelegrambot.domain.port.GetChatBotError.ChatBotNotFoundError
+import com.aitorr.admintelegrambot.domain.port.SaveChatBotUser
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -16,7 +17,8 @@ import org.junit.jupiter.api.Test
 class GetBotInfoUseCaseTest {
 
     private val getChatBot = mockk<GetChatBot>()
-    private val useCase = GetBotInfoUseCase(getChatBot)
+    private val saveChatBotUser = mockk<SaveChatBotUser>()
+    private val useCase = GetBotInfoUseCase(getChatBot, saveChatBotUser)
 
     @Test
     fun `execute should return ChatBotUser when port returns success`() {
@@ -29,6 +31,7 @@ class GetBotInfoUseCaseTest {
             languageCode = "en"
         )
         every { getChatBot.getChatBot() } returns expectedUser.right()
+        every { saveChatBotUser.save(expectedUser) } returns expectedUser.right()
 
         val result = useCase.execute()
 
@@ -42,6 +45,7 @@ class GetBotInfoUseCaseTest {
             }
         )
         verify(exactly = 1) { getChatBot.getChatBot() }
+        verify(exactly = 1) { saveChatBotUser.save(expectedUser) }
     }
 
     @Test
@@ -131,5 +135,37 @@ class GetBotInfoUseCaseTest {
             },
             ifRight = { fail("Expected Left but got Right: $it") }
         )
+    }
+
+    @Test
+    fun `execute should return UnexpectedUseCaseError when save fails`() {
+        val expectedUser = ChatBotUser(
+            id = 456L,
+            isBot = true,
+            firstName = "SaveFailBot",
+            lastName = "Test",
+            username = "save_fail_bot",
+            languageCode = "es"
+        )
+        val saveError = com.aitorr.admintelegrambot.domain.port.SaveChatBotUserError.PersistenceError(
+            message = "Database connection lost"
+        )
+        
+        every { getChatBot.getChatBot() } returns expectedUser.right()
+        every { saveChatBotUser.save(expectedUser) } returns saveError.left()
+
+        val result = useCase.execute()
+
+        assertTrue(result.isLeft())
+        result.fold(
+            ifLeft = { error ->
+                assertTrue(error is UnexpectedUseCaseError)
+                assertTrue(error.message.contains("Failed to save bot info to database"))
+                assertNotNull(error.sourceError)
+            },
+            ifRight = { fail("Expected Left but got Right: $it") }
+        )
+        verify(exactly = 1) { getChatBot.getChatBot() }
+        verify(exactly = 1) { saveChatBotUser.save(expectedUser) }
     }
 }
